@@ -15,9 +15,9 @@
  */
 package com.hierynomus.security.bc;
 
-import com.hierynomus.protocol.commons.Factory;
-import com.hierynomus.security.Cipher;
-import com.hierynomus.security.SecurityException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -27,17 +27,21 @@ import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.DESedeParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.hierynomus.protocol.commons.Factory;
+import com.hierynomus.security.Cipher;
+import com.hierynomus.security.SecurityException;
 
 public class BCCipherFactory {
+
     private static final Map<String, Factory<Cipher>> lookup = new HashMap<>();
 
     static {
         lookup.put("DES/ECB/NoPadding", new Factory<Cipher>() {
+
             @Override
             public Cipher create() {
                 return new BCBlockCipher(new BufferedBlockCipher(new DESEngine())) {
+
                     @Override
                     protected CipherParameters createParams(byte[] key) {
                         return new DESedeParameters(key);
@@ -46,9 +50,11 @@ public class BCCipherFactory {
             }
         });
         lookup.put("RC4", new Factory<Cipher>() {
+
             @Override
             public Cipher create() {
                 return new BCStreamCipher(new RC4Engine()) {
+
                     @Override
                     protected CipherParameters createParams(byte[] key) {
                         return new KeyParameter(key);
@@ -67,6 +73,7 @@ public class BCCipherFactory {
     }
 
     private static abstract class BCBlockCipher implements Cipher {
+
         private BufferedBlockCipher wrappedCipher;
 
         BCBlockCipher(BufferedBlockCipher bufferedBlockCipher) {
@@ -101,6 +108,7 @@ public class BCCipherFactory {
     }
 
     private static abstract class BCStreamCipher implements Cipher {
+
         private StreamCipher streamCipher;
 
         BCStreamCipher(StreamCipher streamCipher) {
@@ -116,7 +124,8 @@ public class BCCipherFactory {
 
         @Override
         public int update(byte[] in, int inOff, int bytes, byte[] out, int outOff) throws SecurityException {
-            return streamCipher.processBytes(in, inOff, bytes, out, outOff);
+            streamCipher.processBytes(in, inOff, bytes, out, outOff);
+            return 0;
         }
 
         @Override
@@ -129,7 +138,6 @@ public class BCCipherFactory {
         public void reset() {
             streamCipher.reset();
         }
-
 
     }
 

@@ -15,11 +15,19 @@
  */
 package com.hierynomus.spnego;
 
-import com.hierynomus.protocol.commons.buffer.Buffer;
-import org.bouncycastle.asn1.*;
-
 import java.io.IOException;
 import java.util.Enumeration;
+
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1Encodable;
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1EncodableVector;
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1Primitive;
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1Sequence;
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1TaggedObject;
+import org.apache.commons.ssl.org.bouncycastle.asn1.DERApplicationSpecific;
+import org.apache.commons.ssl.org.bouncycastle.asn1.DERSequence;
+import org.apache.commons.ssl.org.bouncycastle.asn1.DERTaggedObject;
+
+import com.hierynomus.protocol.commons.buffer.Buffer;
 
 import static com.hierynomus.spnego.ObjectIdentifiers.SPNEGO;
 

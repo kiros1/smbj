@@ -15,8 +15,23 @@
  */
 package com.hierynomus.smbj.auth;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.EnumSet;
+import java.util.Random;
+
+import org.apache.commons.ssl.org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.apache.commons.ssl.org.bouncycastle.asn1.microsoft.MicrosoftObjectIdentifiers;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hierynomus.ntlm.functions.NtlmFunctions;
-import com.hierynomus.ntlm.messages.*;
+import com.hierynomus.ntlm.messages.AvId;
+import com.hierynomus.ntlm.messages.NtlmAuthenticate;
+import com.hierynomus.ntlm.messages.NtlmChallenge;
+import com.hierynomus.ntlm.messages.NtlmNegotiate;
+import com.hierynomus.ntlm.messages.NtlmNegotiateFlag;
 import com.hierynomus.protocol.commons.ByteArrayUtils;
 import com.hierynomus.protocol.commons.EnumWithValue;
 import com.hierynomus.protocol.commons.buffer.Buffer;
@@ -27,20 +42,14 @@ import com.hierynomus.smbj.session.Session;
 import com.hierynomus.spnego.NegTokenInit;
 import com.hierynomus.spnego.NegTokenTarg;
 import com.hierynomus.spnego.SpnegoException;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.microsoft.MicrosoftObjectIdentifiers;
-import org.bouncycastle.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.EnumSet;
-import java.util.Random;
-
-import static com.hierynomus.ntlm.messages.NtlmNegotiateFlag.*;
+import static com.hierynomus.ntlm.messages.NtlmNegotiateFlag.NTLMSSP_NEGOTIATE_ALWAYS_SIGN;
+import static com.hierynomus.ntlm.messages.NtlmNegotiateFlag.NTLMSSP_NEGOTIATE_KEY_EXCH;
+import static com.hierynomus.ntlm.messages.NtlmNegotiateFlag.NTLMSSP_NEGOTIATE_SEAL;
+import static com.hierynomus.ntlm.messages.NtlmNegotiateFlag.NTLMSSP_NEGOTIATE_SIGN;
 
 public class NtlmAuthenticator implements Authenticator {
+
     private static final Logger logger = LoggerFactory.getLogger(NtlmAuthenticator.class);
 
     private static final ASN1ObjectIdentifier NTLMSSP = MicrosoftObjectIdentifiers.microsoft.branch("2.2.10");
@@ -48,6 +57,7 @@ public class NtlmAuthenticator implements Authenticator {
     private Random random;
 
     public static class Factory implements com.hierynomus.protocol.commons.Factory.Named<Authenticator> {
+
         @Override
         public String getName() {
             // The OID for NTLMSSP
@@ -95,7 +105,7 @@ public class NtlmAuthenticator implements Authenticator {
                 byte[] ntlmv2Response = ntlmFunctions.getNTLMv2Response(responseKeyNT, serverChallenge, ntlmv2ClientChallenge);
                 byte[] sessionkey;
 
-                byte[] userSessionKey = ntlmFunctions.hmac_md5(responseKeyNT, Arrays.copyOfRange(ntlmv2Response, 0, 16)); // first 16 bytes of ntlmv2Response is ntProofStr
+                byte[] userSessionKey = ntlmFunctions.hmac_md5(responseKeyNT, copyOfRange(ntlmv2Response, 0, 16)); // first 16 bytes of ntlmv2Response is ntProofStr
                 EnumSet<NtlmNegotiateFlag> negotiateFlags = challenge.getNegotiateFlags();
                 if (negotiateFlags.contains(NTLMSSP_NEGOTIATE_KEY_EXCH)
                     && (negotiateFlags.contains(NTLMSSP_NEGOTIATE_SIGN)
@@ -180,6 +190,30 @@ public class NtlmAuthenticator implements Authenticator {
     @Override
     public boolean supports(AuthenticationContext context) {
         return context.getClass().equals(AuthenticationContext.class);
+    }
+
+    private byte[] copyOfRange(byte[] data, int from, int to) {
+        int newLength = getLength(from, to);
+
+        byte[] tmp = new byte[newLength];
+
+        if (data.length - from < newLength) {
+            System.arraycopy(data, from, tmp, 0, data.length - from);
+        } else {
+            System.arraycopy(data, from, tmp, 0, newLength);
+        }
+
+        return tmp;
+    }
+
+    private int getLength(int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0) {
+            StringBuffer sb = new StringBuffer(from);
+            sb.append(" > ").append(to);
+            throw new IllegalArgumentException(sb.toString());
+        }
+        return newLength;
     }
 
 }

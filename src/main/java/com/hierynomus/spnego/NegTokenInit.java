@@ -15,14 +15,15 @@
  */
 package com.hierynomus.spnego;
 
-import com.hierynomus.protocol.commons.buffer.Buffer;
-import com.hierynomus.protocol.commons.buffer.Endian;
-import org.bouncycastle.asn1.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
+import org.apache.commons.ssl.org.bouncycastle.asn1.*;
+
+import com.hierynomus.protocol.commons.buffer.Buffer;
+import com.hierynomus.protocol.commons.buffer.Endian;
 
 import static com.hierynomus.spnego.ObjectIdentifiers.SPNEGO;
 
@@ -75,6 +76,7 @@ import static com.hierynomus.spnego.ObjectIdentifiers.SPNEGO;
  * </ul>
  */
 public class NegTokenInit extends SpnegoToken {
+
     private static final String ADS_IGNORE_PRINCIPAL = "not_defined_in_RFC4178@please_ignore";
 
     private List<ASN1ObjectIdentifier> mechTypes = new ArrayList<>();
@@ -106,7 +108,7 @@ public class NegTokenInit extends SpnegoToken {
             if (!(applicationSpecific instanceof BERApplicationSpecific || applicationSpecific instanceof DERApplicationSpecific)) {
                 throw new SpnegoException("Incorrect GSS-API ASN.1 token received, expected to find an [APPLICATION 0], not: " + applicationSpecific);
             }
-            ASN1Sequence implicitSequence = (ASN1Sequence) ((ASN1ApplicationSpecific) applicationSpecific).getObject(BERTags.SEQUENCE);
+            ASN1Sequence implicitSequence = (ASN1Sequence) ((DERApplicationSpecific) applicationSpecific).getObject(BERTags.SEQUENCE);
             ASN1Encodable spnegoOid = implicitSequence.getObjectAt(0);
             if (!(spnegoOid instanceof ASN1ObjectIdentifier)) {
                 throw new SpnegoException("Expected to find the SPNEGO OID (" + SPNEGO + "), not: " + spnegoOid);

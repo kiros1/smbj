@@ -15,12 +15,13 @@
  */
 package com.hierynomus.spnego;
 
-import com.hierynomus.protocol.commons.buffer.Buffer;
-import com.hierynomus.protocol.commons.buffer.Endian;
-import org.bouncycastle.asn1.*;
-
 import java.io.IOException;
 import java.math.BigInteger;
+
+import org.apache.commons.ssl.org.bouncycastle.asn1.*;
+
+import com.hierynomus.protocol.commons.buffer.Buffer;
+import com.hierynomus.protocol.commons.buffer.Endian;
 
 /**
  * This class can encode and decode the SPNEGO negTokenInit Token.
@@ -89,7 +90,6 @@ public class NegTokenTarg extends SpnegoToken {
             throw new SpnegoException("Could not write NegTokenTarg to buffer", e);
         }
     }
-
 
     public NegTokenTarg read(byte[] bytes) throws SpnegoException {
         return read(new Buffer.PlainBuffer(bytes, Endian.LE));
